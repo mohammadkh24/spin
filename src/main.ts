@@ -14,9 +14,16 @@ async function bootstrap() {
   const server = app.getHttpAdapter().getInstance();
 
   const port = configService.get('app.port') || 3000;
+  const corsOrigins = (
+    configService.get<string>('CORS_ORIGINS') ||
+    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000'
+  )
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
 
   app.enableCors({
-    origin: '*',
+    origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
@@ -37,13 +44,13 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new TransformInterceptor())
-  app.useGlobalFilters(new AllExceptionsFilter())
+  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Spin')
     .setDescription('spin project')
-    .addTag("Auth")
+    .addTag('Auth')
     .addBearerAuth()
     .setVersion('1.0.0')
 
